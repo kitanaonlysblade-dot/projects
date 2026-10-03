@@ -1,0 +1,17 @@
+node_modules
+.next
+out
+
+# Local-only — Railway's dashboard is where real values for these live;
+# .env.local never leaving the host it was created on is what keeps a
+# secret (there currently aren't any NEXT_PUBLIC_* ones, but the habit
+# matters more than today's contents) from ending up baked into an
+# image or pushed anywhere alongside one.
+.env*.local
+
+.git
+.gitignore
+README.md
+.vscode
+.DS_Store
+npm-debug.log*

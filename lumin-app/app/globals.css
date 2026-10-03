@@ -1,0 +1,82 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+  height: 100%;
+  /* Mobile/tablet: the app is a fixed-viewport, swipe-driven feed, not a
+     scrolling page — without this, iOS/Android's own pull-to-refresh and
+     rubber-band bounce can still fire from a vertical touch gesture at
+     the same time the video feed's own swipe handler advances the post,
+     making it look like the whole screen is dragging along with it.
+     Screens that do need their own scrolling (Profile, Cart, Search,
+     etc.) stay scrollable — they scroll inside their own overflow-y
+     container, not html/body, so this doesn't affect them. */
+  overscroll-behavior-y: none;
+}
+
+/* The app shell's real height. `100vh` is the fallback for older
+   browsers, but on its own it's exactly the bug reported on a Redmi
+   A10: Chrome for Android sizes `vh` against the *largest* possible
+   viewport (as if the address bar / on-screen nav buttons were hidden),
+   not what's actually visible — so a `h-screen` video stage computes
+   itself taller than the real screen and the bottom gets cut off below
+   the fold. `100dvh` ("dynamic viewport height") tracks the real,
+   currently-visible height instead, updating live as the browser's own
+   UI shows/hides. Every modern mobile browser (Chrome/Safari on the
+   devices this app targets) supports it; browsers that don't just keep
+   the vh value above, since an unrecognized unit is ignored rather than
+   applied as 0. */
+.app-shell {
+  height: 100vh;
+  height: 100dvh;
+  width: 100vw;
+}
+
+@layer utilities {
+  /* The single brand gradient — reused for CTAs, active states, the deal
+     banner, and the follow button. One definition, one source of truth. */
+  .brand-gradient {
+    background-image: linear-gradient(135deg, theme('colors.hot-pink'), theme('colors.hot-orange'));
+  }
+
+  .brand-gradient-outline {
+    background: #fff;
+    border: 1.5px solid transparent;
+    background-image: linear-gradient(#fff, #fff),
+      linear-gradient(135deg, theme('colors.hot-pink'), theme('colors.hot-orange'));
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.4s ease;
+}

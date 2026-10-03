@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+
+# Next.js build output
+.next/
+out/
+
+# Local env files — NEXT_PUBLIC_API_URL/NEXT_PUBLIC_GOOGLE_CLIENT_ID
+# belong in Railway's dashboard for a deployed build (see README's
+# "Deploying to Railway" — these are build args, not runtime env vars);
+# .env.local here is purely for `npm run dev` on your own machine and
+# should never be committed.
+.env*.local
+
+# Misc
+.DS_Store
+*.log
+npm-debug.log*
+
+# TypeScript incremental build info
+*.tsbuildinfo

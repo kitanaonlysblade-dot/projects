@@ -1,0 +1,68 @@
+version: '3.9'
+
+# Covers "verify current work" only — Postgres + the FastAPI backend.
+# The Next.js frontend isn't in here: run it locally with `npm run dev`
+# (it already defaults to http://localhost:8000 for the API, see
+# lib/api.ts / .env.local), pointed at whatever this compose file
+# exposes on that same port.
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: lumin
+      POSTGRES_PASSWORD: lumin
+      POSTGRES_DB: lumin
+    ports:
+      # Exposed on the host too, only so a local DB GUI (TablePlus,
+      # psql, etc.) can connect directly while verifying things.
+      - '5432:5432'
+    volumes:
+      - lumin_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U lumin -d lumin']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+psycopg2://lumin:lumin@db:5432/lumin
+      # See entrypoint.sh's own comment — this is the one place that
+      # still wants --reload, since this service's source is bind-mounted
+      # from the host below.
+      RELOAD: 'true'
+      # Dev-only defaults so `docker compose up` works with zero setup.
+      # Override any of these in a .env file alongside this one for
+      # anything that needs to survive being taken more seriously than
+      # that — a real Google OAuth client ID / Paystack keys, in
+      # particular, since Google sign-in and checkout won't actually
+      # work against the placeholder values below (everything else in
+      # the API works fine regardless).
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-dev-only-change-me}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-dev-placeholder}
+      PAYSTACK_SECRET_KEY: ${PAYSTACK_SECRET_KEY:-dev-placeholder}
+      PAYSTACK_PUBLIC_KEY: ${PAYSTACK_PUBLIC_KEY:-dev-placeholder}
+      # Same "app boots either way" deal as the Paystack/Google keys
+      # above — uploads specifically won't work against these
+      # placeholders (see app/storage.py), everything else in the API
+      # still will.
+      R2_ACCOUNT_ID: ${R2_ACCOUNT_ID:-dev-placeholder}
+      R2_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID:-dev-placeholder}
+      R2_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY:-dev-placeholder}
+      R2_BUCKET_NAME: ${R2_BUCKET_NAME:-dev-placeholder}
+      R2_PUBLIC_BASE_URL: ${R2_PUBLIC_BASE_URL:-https://dev-placeholder.r2.dev}
+    ports:
+      - '8000:8000'
+    volumes:
+      # Bind-mounted so `--reload` (in entrypoint.sh) picks up edits
+      # without rebuilding the image — this is for local verification,
+      # not a production setup.
+      - .:/app
+
+volumes:
+  lumin_db_data:
