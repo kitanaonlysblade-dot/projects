@@ -1,0 +1,12 @@
+# Config for the background WORKER service (a second Railway service from the same repo/Root Directory
+# `lumin-backend`; in its Settings point "Config as code" at this file). Same image as the web service, but it runs
+# the job loop instead of the web server and has no HTTP port, so there is no health check.
+# See ../DEPLOY.md and app/jobs.py.
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+startCommand = "python -m app.worker"
+restartPolicyType = "ALWAYS"

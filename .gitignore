@@ -1,0 +1,7 @@
+# Each subproject (lumin-app/, lumin-backend/) has its own .gitignore
+# scoped to its own build artifacts — git respects both automatically.
+# This one is just for things that could land at the repo root itself.
+.DS_Store
+.vscode/
+.idea/
+*.log

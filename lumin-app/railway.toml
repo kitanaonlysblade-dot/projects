@@ -1,0 +1,16 @@
+# See lumin-backend's own railway.toml for why this is committed rather
+# than left to Railway's autodetection.
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+# No dedicated health route here (unlike the backend's /health) — the
+# shop view at "/" renders its initial shell without waiting on the API
+# (the data it needs loads client-side, after mount), so a plain 200 on
+# the homepage is a reliable enough signal that the server itself is up.
+healthcheckPath = "/"
+healthcheckTimeout = 300
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10

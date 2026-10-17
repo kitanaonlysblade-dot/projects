@@ -1,0 +1,19 @@
+# Railway auto-detects a Dockerfile and would build this correctly even
+# without this file — it's here so the build method, health check, and
+# restart behavior are explicit and version-controlled rather than
+# whatever Railway happened to infer, and so they survive someone
+# reconfiguring the service by hand in the dashboard.
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+# app/main.py's own /health — a bare 200, no DB round-trip — so a slow
+# or still-migrating database (entrypoint.sh's own alembic step; see its
+# comment on why that can take a moment on first deploy) doesn't read as
+# the whole service being unhealthy and get it killed/restarted mid-boot.
+healthcheckPath = "/health"
+healthcheckTimeout = 300
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
