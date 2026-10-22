@@ -1,0 +1,314 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Theme colours (space-separated RGB so Tailwind opacity modifiers keep working). Light is the default; the class
+   "dark" on <html> (lib/theme.ts) switches them. .theme-light puts the light colours back inside one element: used
+   for chips and buttons that sit on top of VIDEO (always light-on-dark there, in either theme). */
+:root,
+.theme-light {
+  --c-surface: 255 255 255;
+  --c-panel: 242 242 242;
+  --c-box: 220 220 220;
+  --c-line: 230 230 230;
+  --c-text: 26 26 26;
+  --c-mute: 107 107 107;
+  /* Prices are plain and heavy, like a marketplace: black on the light theme, white on the dark one (not the brand pink). */
+  --c-price: 0 0 0;
+  --c-sale: 180 35 24; /* the struck-through list price and the % off: a deep crimson, clearly darker than the coral brand colour */
+  /* Pink is for thin lines and tiny text. Small pink text uses this slightly deeper shade so it stays readable on white. */
+  --c-pink-ink: 214 40 57;
+  /* Neutral filled buttons and selected tabs: near-black on light, near-white on dark. */
+  --c-btn: 17 17 20;
+  --c-on-btn: 255 255 255;
+  color-scheme: light;
+}
+.dark {
+  --c-surface: 24 24 30;
+  --c-panel: 12 12 16;
+  --c-box: 48 48 58;
+  --c-line: 44 44 54;
+  --c-text: 244 244 247;
+  --c-mute: 160 160 172;
+  --c-price: 255 255 255;
+  --c-sale: 255 133 119;
+  --c-pink-ink: 255 107 122;
+  --c-btn: 244 244 247;
+  --c-on-btn: 17 17 20;
+  color-scheme: dark;
+}
+body {
+  background-color: rgb(var(--c-surface));
+  color: rgb(var(--c-text));
+}
+
+html,
+body {
+  height: 100%;
+  /* Mobile/tablet: the app is a fixed-viewport, swipe-driven feed, not a
+     scrolling page — without this, iOS/Android's own pull-to-refresh and
+     rubber-band bounce can still fire from a vertical touch gesture at
+     the same time the video feed's own swipe handler advances the post,
+     making it look like the whole screen is dragging along with it.
+     Screens that do need their own scrolling (Profile, Cart, Search,
+     etc.) stay scrollable — they scroll inside their own overflow-y
+     container, not html/body, so this doesn't affect them. */
+  overscroll-behavior-y: none;
+}
+
+/* The app shell's real height. `100vh` is the fallback for older
+   browsers, but on its own it's exactly the bug reported on a Redmi
+   A10: Chrome for Android sizes `vh` against the *largest* possible
+   viewport (as if the address bar / on-screen nav buttons were hidden),
+   not what's actually visible — so a `h-screen` video stage computes
+   itself taller than the real screen and the bottom gets cut off below
+   the fold. `100dvh` ("dynamic viewport height") tracks the real,
+   currently-visible height instead, updating live as the browser's own
+   UI shows/hides. Every modern mobile browser (Chrome/Safari on the
+   devices this app targets) supports it; browsers that don't just keep
+   the vh value above, since an unrecognized unit is ignored rather than
+   applied as 0. */
+.app-shell {
+  height: 100vh;
+  height: 100dvh;
+  width: 100vw;
+  /* Height of the bottom tab bar when it is showing (page.tsx sets data-bottom-nav);
+     0 otherwise and on desktop, where the left rail replaces it. Fixed-position bits
+     that rest near the bottom (the "Shop this video" pill) add it so they clear the bar. */
+  --nav-h: 0px;
+}
+.app-shell[data-bottom-nav] {
+  --nav-h: calc(56px + env(safe-area-inset-bottom, 0px));
+}
+@media (min-width: 1024px) {
+  .app-shell[data-bottom-nav] {
+    --nav-h: 0px;
+  }
+}
+
+@layer utilities {
+  /* The single brand gradient — reused for CTAs, active states, the deal
+     banner, and the follow button. One definition, one source of truth. */
+  .brand-gradient {
+    background-image: linear-gradient(135deg, theme('colors.hot-pink'), theme('colors.hot-orange'));
+  }
+
+  /* Neutral fill for buttons and selected tabs (sets its own text colour). Pink stays for thin lines and tiny text. */
+  .btn-neutral {
+    background-color: rgb(var(--c-btn));
+    color: rgb(var(--c-on-btn));
+  }
+
+  .brand-gradient-outline {
+    background: rgb(var(--c-surface));
+    border: 1.5px solid transparent;
+    background-image: linear-gradient(rgb(var(--c-surface)), rgb(var(--c-surface))),
+      linear-gradient(135deg, theme('colors.hot-pink'), theme('colors.hot-orange'));
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.4s ease;
+}
+
+/* iPhone Safari zooms the whole page in when you focus a text field whose
+   font size is under 16px, and does not zoom back out when you leave it —
+   which left the search screen (and every other screen with a field)
+   stuck enlarged, with video results cut off. Keeping fields at 16px on
+   touch devices stops the zoom from ever happening, so there is nothing to
+   undo afterwards, and pinch-zoom stays available for people who want it.
+   Only touch screens are affected; desktop keeps the smaller sizes. */
+@media (pointer: coarse) {
+  input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']):not([type='color']):not([type='button']):not([type='submit']),
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
+@keyframes twinPop {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* A quick pop when a like/save turns on, a slide-in for the cart confirmation, and a soft shimmer for loading blocks. */
+@keyframes likePop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+@keyframes toastIn {
+  from { opacity: 0; transform: translate(-50%, 8px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+@keyframes shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, rgb(var(--c-line)) 25%, rgb(var(--c-panel)) 50%, rgb(var(--c-line)) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton { animation: none; }
+}
+
+/* ---- The Twin loader ----------------------------------------------------------------------------------------------
+   Two orbs (the "twins") circle each other, drift into the middle, merge into one glow, then split apart again.
+   Pure CSS; --s is the size. Reduced motion: the orbs stay still and just breathe. */
+.twin-loader {
+  --s: 44px;
+  position: relative;
+  width: var(--s);
+  height: var(--s);
+  flex: none;
+}
+.twin-loader i {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 38%;
+  height: 38%;
+  margin: -19% 0 0 -19%;
+  border-radius: 9999px;
+  mix-blend-mode: multiply;
+}
+.twin-loader i:nth-child(1) {
+  background: radial-gradient(circle at 35% 35%, #ff8a8f, #F5334A);
+  animation: twinA 1.9s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+.twin-loader i:nth-child(2) {
+  background: radial-gradient(circle at 35% 35%, #ff9a6e, #EE5A24);
+  animation: twinB 1.9s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+.twin-loader::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  border: 2px solid #F5334A;
+  opacity: 0;
+  animation: twinRing 1.9s ease-out infinite;
+}
+@keyframes twinA {
+  0% { transform: rotate(0deg) translateX(105%) scale(1); }
+  50% { transform: rotate(200deg) translateX(0%) scale(1.25); }
+  100% { transform: rotate(360deg) translateX(105%) scale(1); }
+}
+@keyframes twinB {
+  0% { transform: rotate(180deg) translateX(105%) scale(1); }
+  50% { transform: rotate(380deg) translateX(0%) scale(1.25); }
+  100% { transform: rotate(540deg) translateX(105%) scale(1); }
+}
+@keyframes twinRing {
+  0%, 38% { transform: scale(0.35); opacity: 0; }
+  50% { opacity: 0.55; }
+  100% { transform: scale(1.35); opacity: 0; }
+}
+@keyframes splashOut {
+  to { opacity: 0; visibility: hidden; }
+}
+/* The small ring that spins on a video while it waits for data. */
+.buffer-spinner {
+  display: block;
+  width: 38px;
+  height: 38px;
+  border-radius: 9999px;
+  border: 3.5px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.45));
+  animation: bufferSpin 0.8s linear infinite;
+}
+@keyframes bufferSpin {
+  to { transform: rotate(360deg); }
+}
+@keyframes pillIn {
+  from { opacity: 0; transform: translate(-50%, -8px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .twin-loader i:nth-child(1) { animation: none; transform: translateX(55%); }
+  .twin-loader i:nth-child(2) { animation: none; transform: translateX(-55%); }
+  .twin-loader::after { animation: none; }
+}
+
+/* On a dark page the orbs add light instead of multiplying (multiply would turn the overlap black). */
+.dark .twin-loader i {
+  mix-blend-mode: screen;
+}
+.dark .theme-light .twin-loader i {
+  mix-blend-mode: multiply;
+}
+
+/* ---- Scan pulse (the scan sheet while it is looking, Shazam-style) ------------------------------------------------ */
+.scan-pulse {
+  position: relative;
+  width: 168px;
+  height: 168px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.scan-pulse > b {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  border: 2px solid #F5334A;
+  opacity: 0;
+  animation: scanRipple 2.7s ease-out infinite;
+}
+.scan-pulse > b:nth-child(2) { animation-delay: 0.9s; border-color: #EE5A24; }
+.scan-pulse > b:nth-child(3) { animation-delay: 1.8s; }
+@keyframes scanRipple {
+  0% { transform: scale(0.32); opacity: 0.65; }
+  100% { transform: scale(1); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .scan-pulse > b { animation: none; opacity: 0.18; transform: scale(0.7); }
+  .scan-pulse > b:nth-child(2) { transform: scale(0.85); }
+  .scan-pulse > b:nth-child(3) { transform: scale(1); }
+}
+
+@keyframes sheetUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+@keyframes sheetFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
